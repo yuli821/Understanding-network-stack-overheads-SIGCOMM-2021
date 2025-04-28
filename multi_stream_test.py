@@ -323,6 +323,11 @@ if __name__ == "__main__":
         # Stores the results from the receiver
         __results = {}
 
+        server.register_function(mark_sender_ready)
+        server.register_function(is_receiver_ready)
+        server.register_function(mark_sender_done)
+        server.register_function(get_results)
+
         server_thread.start()
 
         # Print the output directory
