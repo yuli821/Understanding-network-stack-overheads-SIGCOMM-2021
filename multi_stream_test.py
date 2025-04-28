@@ -168,11 +168,11 @@ def setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue):
     else:
         manage_ntuple(iface, False)
 
-def setup_affinity_mode(iface, cpulist, sender, receiver, bind_app, bind_queue, config):
+def setup_affinity_mode(iface, cpulist, sender, receiver, bind_queue, config):
         if sender is not None and sender:
-            setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_app, bind_queue)
+            setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue)
         elif receiver is not None and receiver:
-            setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_app, bind_queue)
+            setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue)
     
 def run_iperf_recv(cpu, port, window, bind_app):
     if bind_app:
@@ -295,12 +295,12 @@ def is_sender_done():
 def get_results():
     return __results
 
-def network_setup(iface, cpulist, sender, receiver, bind_app, bind_queue, config):
-    setup_affinity_mode(iface, cpulist, sender, receiver, bind_app, bind_queue, config)
+def network_setup(iface, cpulist, sender, receiver, bind_queue, config):
+    setup_affinity_mode(iface, cpulist, sender, receiver, bind_queue, config)
 
 args = parse_args()
 # network setup
-network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_app, args.bind_queue, args.config)
+network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_queue, args.config)
 time.sleep(2) #sleep for 2 secs to make sure everything setup
 if args.receiver:
     # Need to synchronize with the sender before starting experiment
