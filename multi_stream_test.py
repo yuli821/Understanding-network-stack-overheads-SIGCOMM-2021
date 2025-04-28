@@ -343,7 +343,7 @@ if __name__ == "__main__":
             print("[throughput] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
+            procs = run_flows_recv( args.config, args.cpulist, args.window, args.bind_app)
 
             # Wait till sender is done sending
             mark_receiver_ready()
@@ -367,10 +367,10 @@ if __name__ == "__main__":
             print("[utilisation] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
+            procs = run_flows_recv( args.config, args.cpulist, args.window, args.bind_app)
 
             # Start the sar instance
-            sar = run_sar(list(set(args.cpuslist)))
+            sar = run_sar(list(set(args.cpulist)))
 
             # Wait till sender is done sending
             mark_receiver_ready()
@@ -410,10 +410,10 @@ if __name__ == "__main__":
             print("[cache miss] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
+            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpulist, args.window)
 
             # Start the perf instance
-            perf = run_perf_cache(list(set(args.cpuslist)))
+            perf = run_perf_cache(list(set(args.cpulist)))
 
             # Wait till sender is done sending
             mark_receiver_ready()
@@ -459,7 +459,7 @@ if __name__ == "__main__":
             print("[latency] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
+            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpulist, args.window)
 
             # Wait till sender is done sending
             mark_receiver_ready()
@@ -525,7 +525,7 @@ if __name__ == "__main__":
             print("[throughput] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpulist, args.duration, args.window, args.rpc_size)
 
             # Wait till all experiments finish
             for p in procs:
@@ -556,10 +556,10 @@ if __name__ == "__main__":
             print("[utilisation] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpulist, args.duration, args.window, args.rpc_size)
 
             # Start the sar instance
-            sar = run_sar(list(set(args.cpuslist)))
+            sar = run_sar(list(set(args.cpulist)))
 
             # Wait till all experiments finish
             for p in procs:
@@ -600,10 +600,10 @@ if __name__ == "__main__":
             print("[cache miss] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpulist, args.duration, args.window, args.rpc_size)
 
             # Start the perf instance
-            perf = run_perf_cache(list(set(args.cpuslist)))
+            perf = run_perf_cache(list(set(args.cpulist)))
 
             # Wait till all experiments finish
             for p in procs:
@@ -643,7 +643,7 @@ if __name__ == "__main__":
             print("[latency] starting experiment...")
 
             # Start iperf and/or netperf instances
-            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpulist, args.duration, args.window, args.rpc_size)
 
             # Wait till all experiments finish
             for p in procs:
