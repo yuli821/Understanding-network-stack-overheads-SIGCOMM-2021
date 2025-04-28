@@ -300,359 +300,360 @@ def get_results():
 def network_setup(iface, cpulist, sender, receiver, bind_queue, config):
     setup_affinity_mode(iface, cpulist, sender, receiver, bind_queue, config)
 
-args = parse_args()
-# network setup
-print(args.cpulist)
-network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_queue, args.config)
-time.sleep(2) #sleep for 2 secs to make sure everything setup
-if args.receiver:
-    # Need to synchronize with the sender before starting experiment
-    server = xmlrpc.server.SimpleXMLRPCServer(("0.0.0.0", COMM_PORT), logRequests=False)
-    server.register_introspection_functions()
-    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+if __name__ == "__main__":
+    args = parse_args()
+    # network setup
+    print(args.cpulist)
+    network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_queue, args.config)
+    time.sleep(2) #sleep for 2 secs to make sure everything setup
+    if args.receiver:
+        # Need to synchronize with the sender before starting experiment
+        server = xmlrpc.server.SimpleXMLRPCServer(("0.0.0.0", COMM_PORT), logRequests=False)
+        server.register_introspection_functions()
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
 
-    # Event objects to synchronize sender and receiver
-    __sender_ready = threading.Event()
-    __receiver_ready = threading.Event()
-    __sender_done = threading.Event()
+        # Event objects to synchronize sender and receiver
+        __sender_ready = threading.Event()
+        __receiver_ready = threading.Event()
+        __sender_done = threading.Event()
 
 
-    # Stores the results from the receiver
-    __results = {}
+        # Stores the results from the receiver
+        __results = {}
 
-    server_thread.start()
+        server_thread.start()
 
-    # Print the output directory
-    if args.output is not None:
-        print("[output] writing results to {}".format(args.output))
-
-    clear_processes()
-    header = []
-    output = []
-    if args.throughput:
-        # Wait till sender starts
-        is_sender_ready()
-        print("[throughput] starting experiment...")
-
-        # Start iperf and/or netperf instances
-        procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
-
-        # Wait till sender is done sending
-        mark_receiver_ready()
-        is_sender_done()
-
-        # Kill all the processes
-        for p in procs:
-            p.kill()
-        print("[throughput] finished experiment.")
-
-        # Process and write the raw output
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
-            if args.output is not None:
-                with open(os.path.join(args.output, "throughput_benchmark_{}.log".format(i)), "w") as f:
-                    f.writelines(lines)
-
-    if args.utilisation:
-        # Wait till sender starts
-        is_sender_ready()
-        print("[utilisation] starting experiment...")
-
-        # Start iperf and/or netperf instances
-        procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
-
-        # Start the sar instance
-        sar = run_sar(list(set(args.cpuslist)))
-
-        # Wait till sender is done sending
-        mark_receiver_ready()
-        is_sender_done()
-
-        # Kill sar
-        sar.send_signal(signal.SIGINT)
-        sar.wait()
-
-        # Kill all the processes
-        for p in procs:
-            p.kill()
-        print("[utilisation] finished experiment.")
-
-        # Process and write the raw output
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
-            if args.output is not None:
-                with open(os.path.join(args.output, "utilisation_benchmark_{}.log".format(i)), "w") as f:
-                    f.writelines(lines)
-
-        lines = sar.stdout.readlines()
-        cpu_util = sum(process_util_output(lines).values())
-        __results["cpu_util"] = cpu_util
+        # Print the output directory
         if args.output is not None:
-            with open(os.path.join(args.output, "utilisation_sar.log"), "w") as f:
-                f.writelines(lines)
+            print("[output] writing results to {}".format(args.output))
 
-        # Print the output
-        print("[utilisation] utilisation: {:.3f}".format(cpu_util))
-        header.append("receiver utilisation (%)")
-        output.append("{:.3f}".format(cpu_util))
+        clear_processes()
+        header = []
+        output = []
+        if args.throughput:
+            # Wait till sender starts
+            is_sender_ready()
+            print("[throughput] starting experiment...")
 
-    if args.cache_miss:
-        # Wait till sender starts
-        is_sender_ready()
-        print("[cache miss] starting experiment...")
+            # Start iperf and/or netperf instances
+            procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
 
-        # Start iperf and/or netperf instances
-        procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
+            # Wait till sender is done sending
+            mark_receiver_ready()
+            is_sender_done()
 
-        # Start the perf instance
-        perf = run_perf_cache(list(set(args.cpuslist)))
+            # Kill all the processes
+            for p in procs:
+                p.kill()
+            print("[throughput] finished experiment.")
 
-        # Wait till sender is done sending
-        mark_receiver_ready()
-        is_sender_done()
+            # Process and write the raw output
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "throughput_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
 
-        # Kill perf
-        perf.send_signal(signal.SIGINT)
-        perf.wait()
+        if args.utilisation:
+            # Wait till sender starts
+            is_sender_ready()
+            print("[utilisation] starting experiment...")
 
-        # Kill all the processes
-        for p in procs:
-            p.kill()
-        print("[cache miss] finished experiment.")
+            # Start iperf and/or netperf instances
+            procs = run_flows_recv( args.config, args.cpuslist, args.window, args.bind_app)
 
-        # Process and write the raw output
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
+            # Start the sar instance
+            sar = run_sar(list(set(args.cpuslist)))
+
+            # Wait till sender is done sending
+            mark_receiver_ready()
+            is_sender_done()
+
+            # Kill sar
+            sar.send_signal(signal.SIGINT)
+            sar.wait()
+
+            # Kill all the processes
+            for p in procs:
+                p.kill()
+            print("[utilisation] finished experiment.")
+
+            # Process and write the raw output
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "utilisation_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+
+            lines = sar.stdout.readlines()
+            cpu_util = sum(process_util_output(lines).values())
+            __results["cpu_util"] = cpu_util
             if args.output is not None:
-                with open(os.path.join(args.output, "cache-miss_benchmark_{}.log".format(i)), "w") as f:
+                with open(os.path.join(args.output, "utilisation_sar.log"), "w") as f:
                     f.writelines(lines)
 
-        lines = perf.stdout.readlines()
-        cache_miss = process_cache_miss_output(lines)
-        __results["cache_miss"] = cache_miss
-        if args.output is not None:
-            with open(os.path.join(args.output, "cache-miss_perf.log"), "w") as f:
-                f.writelines(lines)
+            # Print the output
+            print("[utilisation] utilisation: {:.3f}".format(cpu_util))
+            header.append("receiver utilisation (%)")
+            output.append("{:.3f}".format(cpu_util))
 
-        # Print the output
-        print("[cache miss] cache miss: {:.3f}".format(cache_miss))
-        header.append("receiver cache miss (%)")
-        output.append("{:.3f}".format(cache_miss))
+        if args.cache_miss:
+            # Wait till sender starts
+            is_sender_ready()
+            print("[cache miss] starting experiment...")
 
-    if args.latency:
-        # Clear dmesg
-        dmesg_clear()
+            # Start iperf and/or netperf instances
+            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
 
-        # Enable latency measurement
-        latency_measurement(enabled=True)
+            # Start the perf instance
+            perf = run_perf_cache(list(set(args.cpuslist)))
 
-        # Wait till sender starts
-        is_sender_ready()
-        print("[latency] starting experiment...")
+            # Wait till sender is done sending
+            mark_receiver_ready()
+            is_sender_done()
 
-        # Start iperf and/or netperf instances
-        procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
+            # Kill perf
+            perf.send_signal(signal.SIGINT)
+            perf.wait()
 
-        # Wait till sender is done sending
-        mark_receiver_ready()
-        is_sender_done()
+            # Kill all the processes
+            for p in procs:
+                p.kill()
+            print("[cache miss] finished experiment.")
 
-        # Kill all the processes
-        for p in procs:
-            p.kill()
-        print("[latency] finished experiment.")
+            # Process and write the raw output
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "cache-miss_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
 
-        # Disable latency measurement
-        latency_measurement(enabled=False)
-
-        # Process and write the raw output
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
+            lines = perf.stdout.readlines()
+            cache_miss = process_cache_miss_output(lines)
+            __results["cache_miss"] = cache_miss
             if args.output is not None:
-                with open(os.path.join(args.output, "latency_benchmark_{}.log".format(i)), "w") as f:
+                with open(os.path.join(args.output, "cache-miss_perf.log"), "w") as f:
                     f.writelines(lines)
 
-        # Start a dmesg instance to read the kernel logs
-        dmesg = run_dmesg()
-        lines = []
+            # Print the output
+            print("[cache miss] cache miss: {:.3f}".format(cache_miss))
+            header.append("receiver cache miss (%)")
+            output.append("{:.3f}".format(cache_miss))
+
+        if args.latency:
+            # Clear dmesg
+            dmesg_clear()
+
+            # Enable latency measurement
+            latency_measurement(enabled=True)
+
+            # Wait till sender starts
+            is_sender_ready()
+            print("[latency] starting experiment...")
+
+            # Start iperf and/or netperf instances
+            procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpuslist, args.window)
+
+            # Wait till sender is done sending
+            mark_receiver_ready()
+            is_sender_done()
+
+            # Kill all the processes
+            for p in procs:
+                p.kill()
+            print("[latency] finished experiment.")
+
+            # Disable latency measurement
+            latency_measurement(enabled=False)
+
+            # Process and write the raw output
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "latency_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+
+            # Start a dmesg instance to read the kernel logs
+            dmesg = run_dmesg()
+            lines = []
+            while True:
+                new_lines = dmesg.stdout.readlines()
+                lines += new_lines
+                if len(new_lines) == 0 and dmesg.poll() != None:
+                    break
+            avg_latency, tail_latency = process_latency_output(lines)
+            __results["avg_latency"] = avg_latency
+            __results["tail_latency"] = tail_latency
+            if args.output is not None:
+                with open(os.path.join(args.output, "latency_dmesg.log"), "w") as f:
+                    f.writelines(lines)
+
+            # Print the output
+            print("[latency] avg. data copy latency: {:.3f}\ttail data copy latency: {}".format(avg_latency, tail_latency))
+            header.append("avg. data copy latency (us)")
+            output.append("{:.3f}".format(avg_latency))
+            header.append("tail data copy latency (us)")
+            output.append("{}".format(tail_latency))
+    elif args.sender:
+        # Create the XMLRPC proxy
+        receiver = xmlrpc.client.ServerProxy("http://{}:{}".format(args.receiver_addr, COMM_PORT), allow_none=True)
+        # Wait till receiver is ready
         while True:
-            new_lines = dmesg.stdout.readlines()
-            lines += new_lines
-            if len(new_lines) == 0 and dmesg.poll() != None:
+            try:
+                receiver.system.listMethods()
                 break
-        avg_latency, tail_latency = process_latency_output(lines)
-        __results["avg_latency"] = avg_latency
-        __results["tail_latency"] = tail_latency
+            except ConnectionRefusedError:
+                time.sleep(1)
+        # Print the output directory
         if args.output is not None:
-            with open(os.path.join(args.output, "latency_dmesg.log"), "w") as f:
-                f.writelines(lines)
+            print("[output] writing results to {}".format(args.output))
+        # Run the experiments
+        clear_processes()
+        header = []
+        output = []
+        if args.throughput:
+            # Wait till receiver starts
+            receiver.mark_sender_ready()
+            receiver.is_receiver_ready()
+            print("[throughput] starting experiment...")
 
-        # Print the output
-        print("[latency] avg. data copy latency: {:.3f}\ttail data copy latency: {}".format(avg_latency, tail_latency))
-        header.append("avg. data copy latency (us)")
-        output.append("{:.3f}".format(avg_latency))
-        header.append("tail data copy latency (us)")
-        output.append("{}".format(tail_latency))
-elif args.sender:
-    # Create the XMLRPC proxy
-    receiver = xmlrpc.client.ServerProxy("http://{}:{}".format(args.receiver_addr, COMM_PORT), allow_none=True)
-    # Wait till receiver is ready
-    while True:
-        try:
-            receiver.system.listMethods()
-            break
-        except ConnectionRefusedError:
-            time.sleep(1)
-    # Print the output directory
-    if args.output is not None:
-        print("[output] writing results to {}".format(args.output))
-    # Run the experiments
-    clear_processes()
-    header = []
-    output = []
-    if args.throughput:
-        # Wait till receiver starts
-        receiver.mark_sender_ready()
-        receiver.is_receiver_ready()
-        print("[throughput] starting experiment...")
+            # Start iperf and/or netperf instances
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
 
-        # Start iperf and/or netperf instances
-        procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            # Wait till all experiments finish
+            for p in procs:
+                p.wait()
 
-        # Wait till all experiments finish
-        for p in procs:
-            p.wait()
+            # Sender is done sending
+            receiver.mark_sender_done()
+            print("[throughput] finished experiment.")
 
-        # Sender is done sending
-        receiver.mark_sender_done()
-        print("[throughput] finished experiment.")
+            # Process and write the raw output
+            total_throughput = 0
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "throughput_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+                total_throughput += process_throughput_output(lines)
 
-        # Process and write the raw output
-        total_throughput = 0
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
+            # Print the output
+            print("[throughput] total throughput: {:.3f}".format(total_throughput))
+            header.append("throughput (Gbps)")
+            output.append("{:.3f}".format(total_throughput))
+
+        if args.utilisation:
+            # Wait till receiver starts
+            receiver.mark_sender_ready()
+            receiver.is_receiver_ready()
+            print("[utilisation] starting experiment...")
+
+            # Start iperf and/or netperf instances
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+
+            # Start the sar instance
+            sar = run_sar(list(set(args.cpuslist)))
+
+            # Wait till all experiments finish
+            for p in procs:
+                p.wait()
+
+            # Sender is done sending
+            receiver.mark_sender_done()
+
+            # Kill the sar instance
+            sar.send_signal(signal.SIGINT)
+            sar.wait()
+            print("[utilisation] finished experiment.")
+
+            # Process and write the raw output
+            throughput = 0
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "utilisation_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+                throughput += process_throughput_output(lines)
+
+            lines = sar.stdout.readlines()
+            cpu_util = sum(process_util_output(lines).values())
             if args.output is not None:
-                with open(os.path.join(args.output, "throughput_benchmark_{}.log".format(i)), "w") as f:
+                with open(os.path.join(args.output, "utilisation_sar.log"), "w") as f:
                     f.writelines(lines)
-            total_throughput += process_throughput_output(lines)
 
-        # Print the output
-        print("[throughput] total throughput: {:.3f}".format(total_throughput))
-        header.append("throughput (Gbps)")
-        output.append("{:.3f}".format(total_throughput))
+            # Print the output
+            print("[utilisation] total throughput: {:.3f}\tutilisation: {:.3f}".format(throughput, cpu_util))
+            header.append("sender utilisation (%)")
+            output.append("{:.3f}".format(cpu_util))
 
-    if args.utilisation:
-        # Wait till receiver starts
-        receiver.mark_sender_ready()
-        receiver.is_receiver_ready()
-        print("[utilisation] starting experiment...")
+        if args.cache_miss:
+            # Wait till receiver starts
+            receiver.mark_sender_ready()
+            receiver.is_receiver_ready()
+            print("[cache miss] starting experiment...")
 
-        # Start iperf and/or netperf instances
-        procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            # Start iperf and/or netperf instances
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
 
-        # Start the sar instance
-        sar = run_sar(list(set(args.cpuslist)))
+            # Start the perf instance
+            perf = run_perf_cache(list(set(args.cpuslist)))
 
-        # Wait till all experiments finish
-        for p in procs:
-            p.wait()
+            # Wait till all experiments finish
+            for p in procs:
+                p.wait()
 
-        # Sender is done sending
-        receiver.mark_sender_done()
+            # Sender is done sending
+            receiver.mark_sender_done()
 
-        # Kill the sar instance
-        sar.send_signal(signal.SIGINT)
-        sar.wait()
-        print("[utilisation] finished experiment.")
+            # Kill the perf instance
+            perf.send_signal(signal.SIGINT)
+            perf.wait()
+            print("[cache miss] finished experiment.")
 
-        # Process and write the raw output
-        throughput = 0
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
+            # Process and write the raw output
+            throughput = 0
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "cache-miss_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+                throughput += process_throughput_output(lines)
+
+            lines = perf.stdout.readlines()
+            cache_miss = process_cache_miss_output(lines)
             if args.output is not None:
-                with open(os.path.join(args.output, "utilisation_benchmark_{}.log".format(i)), "w") as f:
+                with open(os.path.join(args.output, "cache-miss_perf.log"), "w") as f:
                     f.writelines(lines)
-            throughput += process_throughput_output(lines)
 
-        lines = sar.stdout.readlines()
-        cpu_util = sum(process_util_output(lines).values())
-        if args.output is not None:
-            with open(os.path.join(args.output, "utilisation_sar.log"), "w") as f:
-                f.writelines(lines)
+            # Print the output
+            print("[cache miss] total throughput: {:.3f}\tcache miss: {:.3f}".format(throughput, cache_miss))
+            header.append("sender cache miss (%)")
+            output.append("{:.3f}".format(cache_miss))
+        if args.latency:
+            # Wait till receiver starts
+            receiver.mark_sender_ready()
+            receiver.is_receiver_ready()
+            print("[latency] starting experiment...")
 
-        # Print the output
-        print("[utilisation] total throughput: {:.3f}\tutilisation: {:.3f}".format(throughput, cpu_util))
-        header.append("sender utilisation (%)")
-        output.append("{:.3f}".format(cpu_util))
+            # Start iperf and/or netperf instances
+            procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
 
-    if args.cache_miss:
-        # Wait till receiver starts
-        receiver.mark_sender_ready()
-        receiver.is_receiver_ready()
-        print("[cache miss] starting experiment...")
+            # Wait till all experiments finish
+            for p in procs:
+                p.wait()
 
-        # Start iperf and/or netperf instances
-        procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
+            # Sender is done sending
+            receiver.mark_sender_done()
+            print("[latency] finished experiment.")
 
-        # Start the perf instance
-        perf = run_perf_cache(list(set(args.cpuslist)))
+            # Process and write the raw output
+            throughput = 0
+            for i, p in enumerate(procs):
+                lines = p.stdout.readlines()
+                if args.output is not None:
+                    with open(os.path.join(args.output, "latency_benchmark_{}.log".format(i)), "w") as f:
+                        f.writelines(lines)
+                throughput += process_throughput_output(lines)
 
-        # Wait till all experiments finish
-        for p in procs:
-            p.wait()
-
-        # Sender is done sending
-        receiver.mark_sender_done()
-
-        # Kill the perf instance
-        perf.send_signal(signal.SIGINT)
-        perf.wait()
-        print("[cache miss] finished experiment.")
-
-        # Process and write the raw output
-        throughput = 0
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
-            if args.output is not None:
-                with open(os.path.join(args.output, "cache-miss_benchmark_{}.log".format(i)), "w") as f:
-                    f.writelines(lines)
-            throughput += process_throughput_output(lines)
-
-        lines = perf.stdout.readlines()
-        cache_miss = process_cache_miss_output(lines)
-        if args.output is not None:
-            with open(os.path.join(args.output, "cache-miss_perf.log"), "w") as f:
-                f.writelines(lines)
-
-        # Print the output
-        print("[cache miss] total throughput: {:.3f}\tcache miss: {:.3f}".format(throughput, cache_miss))
-        header.append("sender cache miss (%)")
-        output.append("{:.3f}".format(cache_miss))
-    if args.latency:
-        # Wait till receiver starts
-        receiver.mark_sender_ready()
-        receiver.is_receiver_ready()
-        print("[latency] starting experiment...")
-
-        # Start iperf and/or netperf instances
-        procs = run_flows_send(args.flow_type, args.config, args.addr, args.num_connections, args.num_rpcs, args.cpuslist, args.duration, args.window, args.rpc_size)
-
-        # Wait till all experiments finish
-        for p in procs:
-            p.wait()
-
-        # Sender is done sending
-        receiver.mark_sender_done()
-        print("[latency] finished experiment.")
-
-        # Process and write the raw output
-        throughput = 0
-        for i, p in enumerate(procs):
-            lines = p.stdout.readlines()
-            if args.output is not None:
-                with open(os.path.join(args.output, "latency_benchmark_{}.log".format(i)), "w") as f:
-                    f.writelines(lines)
-            throughput += process_throughput_output(lines)
-
-        # Print the output
-        print("[latency] total throughput: {:.3f}".format(throughput))
+            # Print the output
+            print("[latency] total throughput: {:.3f}".format(throughput))
