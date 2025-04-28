@@ -69,7 +69,7 @@ def parse_args():
     parser.add_argument("--bind_app", action='store_true', default=None, help="Whether to bind receiving thread to the specific core")
     parser.add_argument("--bind_queue", action='store_true', default=None, help="Whether to bind TX/RX queue/IRQ to the specific core")
     parser.add_argument("--config", choices=["one-to-one", "single"], default="single", help="Configuration to run the experiment with.")
-    parser.add_argument("--cpus", type=int, nargs="*", help="Which CPUs to use for experiment.")
+    parser.add_argument("--cpus", type=int, help="Which CPUs to use for experiment.")
     parser.add_argument("--num-rpcs", type=int, default=0, help="Number of short flows (for mixed flow type).")
     parser.add_argument("--rpc-size", type=int, default=4000, help="Size of the RPC for short flows.")
     #run parameter
