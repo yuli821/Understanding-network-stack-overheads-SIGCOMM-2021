@@ -86,7 +86,7 @@ def parse_args():
     if args.config in ["single"]:
         args.cpulist = [1]
     elif args.config in ["one-to-one"]:
-        args.cpulist = [cpu for cpu in args.cpus]
+        args.cpulist = [cpu for cpu in range(args.cpus)]
     else:
         args.cpulist = []
 
