@@ -295,12 +295,12 @@ def is_sender_done():
 def get_results():
     return __results
 
-def network_setup(iface, cpulist, server, receiver, bind_app, bind_queue, config):
-    setup_affinity_mode(iface, cpulist, server, receiver, bind_app, bind_queue, config)
+def network_setup(iface, cpulist, sender, receiver, bind_app, bind_queue, config):
+    setup_affinity_mode(iface, cpulist, sender, receiver, bind_app, bind_queue, config)
 
 args = parse_args()
 # network setup
-network_setup(args.interface, args.cpulist, args.server, args.receiver, args.bind_app, args.bind_queue, args.config)
+network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_app, args.bind_queue, args.config)
 time.sleep(2) #sleep for 2 secs to make sure everything setup
 if args.receiver:
     # Need to synchronize with the sender before starting experiment
