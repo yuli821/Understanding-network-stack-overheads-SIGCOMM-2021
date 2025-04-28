@@ -12,5 +12,5 @@ results_dir=${4:-$DIR/results}
 # Create results directory
 mkdir -p $results_dir
 for i in 32; do
-        $DIR/multi_stream_test.py interface $iface --sender --addr $device_dst_ip --receiver_addr $public_dst_ip --config one-to-one --bind_app --cpus $i --throughput --utilisation --cache-miss --latency --output $results_dir/one-to-one_${i} | tee $results_dir/one-to-one_${i}.log
+        $DIR/multi_stream_test.py $iface --sender --addr $device_dst_ip --receiver_addr $public_dst_ip --config one-to-one --bind_app --cpus $i --throughput --utilisation --cache-miss --latency --output $results_dir/one-to-one_${i} | tee $results_dir/one-to-one_${i}.log
 done
