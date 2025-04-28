@@ -1,6 +1,6 @@
 #!/bin/bash
 # Get the dir of this project
-DIR=$(realpath $(dirname $(readlink -f $0))/../..)
+DIR=$(realpath $(dirname $(readlink -f $0)))
 
 # Parse arguments
 # Example: ./one-to-one.sh 128.84.155.115 192.168.10.115 enp37s0f1
