@@ -159,11 +159,13 @@ def setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue):
     # For single flow or incast, we have to send all traffic to core 1;
     # for one-to-one and outcast, we use flow steering to next core;
     # otherwise we just use RSS
+    print("Here")
     if config in ["single"]:
         manage_ntuple(iface, True)
         ntuple_send_all_traffic_to_queue(iface, 1, 0)
     elif config in ["one-to-one"]:
         manage_ntuple(iface, True)
+        print("Here")
         for index, cpu in enumerate(cpulist):
             print("Inserting RX rule - Interface: {}, Port: {}, Core: {}".format(iface, BASE_PORT+index, cpu))
             ntuple_send_port_to_queue(iface, BASE_PORT + index, cpu, index)
