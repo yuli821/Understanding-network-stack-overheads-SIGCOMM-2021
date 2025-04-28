@@ -153,7 +153,7 @@ def set_irq_affinity(iface):
     os.system("set_irq_affinity.sh {} 2> /dev/null > /dev/null".format(iface))
 
 
-def ntuple_send_port_to_queue(iface, port, n, loc):
+def ntuple_send_port_to_queue(iface, port, n, loc): #action: queue index
     os.system("ethtool -U {} flow-type tcp4 dst-port {} action {} loc {}".format(iface, port, n, loc))
     os.system("ethtool -U {} flow-type tcp4 src-port {} action {} loc {}".format(iface, port, n, MAX_RULE_LOC - loc))
 
