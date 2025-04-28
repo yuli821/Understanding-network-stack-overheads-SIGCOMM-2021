@@ -110,9 +110,11 @@ def start_irq_balance():
 def manage_ntuple(iface, enabled):
     os.system("ethtool -K {} ntuple {}".format(iface, on_or_off(enabled)))
 
-def ntuple_send_port_to_queue(iface, port, n, loc):
-    os.system("ethtool -U {} flow-type tcp4 dst-port {} action {} loc {}".format(iface, port, n, loc))
-    # os.system("ethtool -U {} flow-type tcp4 src-port {} action {} loc {}".format(iface, port, n, MAX_RULE_LOC - loc))
+def ntuple_send_port_to_queue(iface, sender, receiver, port, n, loc):
+    if receiver:
+        os.system("ethtool -U {} flow-type tcp4 dst-port {} action {} loc {}".format(iface, port, n, loc))
+    if sender: 
+        os.system("ethtool -U {} flow-type tcp4 src-port {} action {} loc {}".format(iface, port, n, MAX_RULE_LOC - loc))
 
 def ntuple_send_all_traffic_to_queue(iface, n, loc):
     os.system("ethtool -U {} flow-type tcp4 action {} loc {}".format(iface, n, loc))
@@ -145,7 +147,7 @@ def setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue):
         manage_ntuple(iface, True)
         for index, cpu in enumerate(cpulist): # one queue per CPU
             print("Inserting TX rule - Interface: {}, Port: {}, Core: {}".format(iface, BASE_PORT+index, cpu))
-            ntuple_send_port_to_queue(iface, BASE_PORT + index, cpu, index) # 3. mapping the flow to a specific queue, flow 0 -> queue 0, queue 0 -> core 0 by 1 and 2
+            ntuple_send_port_to_queue(iface, True, False, BASE_PORT + index, cpu, index) # 3. mapping the flow to a specific queue, flow 0 -> queue 0, queue 0 -> core 0 by 1 and 2
     else:
         manage_ntuple(iface, False) # Depends on hardware RSS
 
@@ -166,7 +168,7 @@ def setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue):
         manage_ntuple(iface, True)
         for index, cpu in enumerate(cpulist):
             print("Inserting RX rule - Interface: {}, Port: {}, Core: {}".format(iface, BASE_PORT+index, cpu))
-            ntuple_send_port_to_queue(iface, BASE_PORT + index, cpu, index)
+            ntuple_send_port_to_queue(iface, False, True, BASE_PORT + index, cpu, index)
     else:
         manage_ntuple(iface, False)
 
