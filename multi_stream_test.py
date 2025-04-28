@@ -144,6 +144,7 @@ def setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue):
     elif config in ["one-to-one"]:
         manage_ntuple(iface, True)
         for index, cpu in enumerate(cpulist): # one queue per CPU
+            print("Inserting RX rule - Interface: {}, Port: {}, Core: {}".format(iface, BASE_PORT+index, cpu))
             ntuple_send_port_to_queue(iface, BASE_PORT + index, cpu, index) # 3. mapping the flow to a specific queue, flow 0 -> queue 0, queue 0 -> core 0 by 1 and 2
     else:
         manage_ntuple(iface, False) # Depends on hardware RSS
