@@ -190,6 +190,12 @@ def setup_affinity_mode(iface, arfs, cpulist, sender, receiver, bind_queue, conf
             setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue)
         elif receiver is not None and receiver:
             setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue)
+
+# Set DDIO ways
+def set_ddio_ways(ways):
+    if ways is not None:
+        os.system("modprobe msr")
+        os.system("wrmsr {} {}".format(DDIO_REG, hex((2 ** ways - 1) << (11 - ways))))
     
 def run_iperf_recv(cpu, port, window, bind_app):
     if bind_app:
