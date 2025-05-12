@@ -412,7 +412,7 @@ if __name__ == "__main__":
 
             # Start iperf and/or netperf instances
             # procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpulist, args.window)
-            procs = run_flows_recv( args.config, args.cpulist, args.window, args.bind_app)
+            procs = run_flows_recv( args.config, args.cpulist, None, args.bind_app)
 
             # Start the perf instance
             perf = run_perf_cache(list(set(args.cpulist)))
@@ -462,7 +462,7 @@ if __name__ == "__main__":
 
             # Start iperf and/or netperf instances
             # procs = run_flows_recv(args.flow_type, args.config, args.num_connections, args.cpulist, args.window)
-            procs = run_flows_recv( args.config, args.cpulist, args.window, args.bind_app)
+            procs = run_flows_recv( args.config, args.cpulist, None, args.bind_app)
 
             # Wait till sender is done sending
             mark_receiver_ready()
