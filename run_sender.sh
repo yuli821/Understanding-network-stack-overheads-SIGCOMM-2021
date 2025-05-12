@@ -13,5 +13,5 @@ results_dir=${4:-$DIR/results}
 mkdir -p $results_dir
 for i in 28; do
         # $DIR/multi_stream_test.py $iface --sender --addr $device_dst_ip --receiver_addr $public_dst_ip --config one-to-one --bind_app --cpus $i --throughput --utilisation --cache-miss --output $results_dir/one-to-one_${i} | tee $results_dir/one-to-one_${i}.log
-        $DIR/multi_stream_test.py $iface --sender --addr $device_dst_ip --receiver_addr $public_dst_ip --config one-to-one --cpus $i --throughput --utilisation --cache-miss --output $results_dir/one-to-one_${i} | tee $results_dir/one-to-one_${i}.log
+        $DIR/multi_stream_test.py $iface --sender --addr $device_dst_ip --receiver_addr $public_dst_ip --config one-to-one --no-arfs --bind_app --cpus $i --throughput --utilisation --cache-miss --output $results_dir/one-to-one_${i} | tee $results_dir/one-to-one_${i}.log
 done

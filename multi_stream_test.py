@@ -73,6 +73,8 @@ def parse_args():
     parser.add_argument("--num-rpcs", type=int, default=0, help="Number of short flows (for mixed flow type).")
     parser.add_argument("--rpc-size", type=int, default=4000, help="Size of the RPC for short flows.")
     parser.add_argument("--duration", type=int, default=20, help="Duration of the experiment in seconds.")
+    parser.add_argument('--arfs', action='store_true', default=None, help='Enables aRFS.')
+    parser.add_argument('--no-arfs', dest='arfs', action='store_false', default=None, help='Disables aRFS.')
     # parser.add_argument("--num-connections", type=int, default=1, help="Number of connections.")
     #run parameter
     parser.add_argument("--output", type=str, default=None, help="Write raw output to the directory.")
@@ -152,6 +154,13 @@ def setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue):
     else:
         manage_ntuple(iface, False) # Depends on hardware RSS
 
+# Functions to set IRQ mode
+def setup_irq_mode_arfs(iface):
+    stop_irq_balance()
+    manage_rps(iface, True)
+    manage_ntuple(iface, True)
+    set_irq_affinity(iface)
+    ntuple_clear_rules(iface)
 
 def setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue):
     stop_irq_balance()
@@ -173,8 +182,11 @@ def setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue):
     else:
         manage_ntuple(iface, False)
 
-def setup_affinity_mode(iface, cpulist, sender, receiver, bind_queue, config):
-        if sender is not None and sender:
+def setup_affinity_mode(iface, arfs, cpulist, sender, receiver, bind_queue, config):
+    if arfs is not None:
+        if arfs:
+            setup_irq_mode_arfs(iface)
+        elif sender is not None and sender:
             setup_irq_mode_no_arfs_sender(cpulist, iface, config, bind_queue)
         elif receiver is not None and receiver:
             setup_irq_mode_no_arfs_receiver(cpulist, iface, config, bind_queue)
@@ -300,14 +312,14 @@ def is_sender_done():
 def get_results():
     return __results
 
-def network_setup(iface, cpulist, sender, receiver, bind_queue, config):
-    setup_affinity_mode(iface, cpulist, sender, receiver, bind_queue, config)
+def network_setup(iface, arfs, cpulist, sender, receiver, bind_queue, config):
+    setup_affinity_mode(iface, arfs, cpulist, sender, receiver, bind_queue, config)
 
 if __name__ == "__main__":
     args = parse_args()
     # network setup
     print(args.cpulist)
-    network_setup(args.interface, args.cpulist, args.sender, args.receiver, args.bind_queue, args.config)
+    network_setup(args.interface, args.arfs, args.cpulist, args.sender, args.receiver, args.bind_queue, args.config)
     time.sleep(2) #sleep for 2 secs to make sure everything setup
     if args.receiver:
         # Need to synchronize with the sender before starting experiment
