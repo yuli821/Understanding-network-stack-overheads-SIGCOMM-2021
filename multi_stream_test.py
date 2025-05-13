@@ -374,11 +374,16 @@ if __name__ == "__main__":
             print("[throughput] finished experiment.")
 
             # Process and write the raw output
+            total_throughput = 0
             for i, p in enumerate(procs):
                 lines = p.stdout.readlines()
                 if args.output is not None:
                     with open(os.path.join(args.output, "throughput_benchmark_{}.log".format(i)), "w") as f:
                         f.writelines(lines)
+                    total_throughput += process_throughput_output(lines)
+            print("[throughput] total throughput: {:.3f}".format(total_throughput))
+            header.append("throughput (Gbps)")
+            output.append("{:.3f}".format(total_throughput))
 
         if args.utilisation:
             # Wait till sender starts
